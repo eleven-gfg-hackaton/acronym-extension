@@ -1,0 +1,22 @@
+{
+    "manifest_version": 3,
+    "name": "Acronym Finder",
+    "version": "1.0",
+    "description": "This extension will help you find the meaning of an acronym",
+    "action": {
+        "default_popup": "popup.html"
+    },
+    "content_scripts": [
+        {
+          "js": ["scripts/content.js"],
+          "matches": [
+            "https://developer.chrome.com/docs/extensions/*",
+            "https://developer.chrome.com/docs/webstore/*"
+          ]
+        }
+      ],
+    "background": {
+        "service_worker": "scripts/background.js"
+    },
+    "permissions": ["activeTab", "scripting"]
+}
