@@ -10,9 +10,11 @@
         {
           "js": ["scripts/content.js"],
           "matches": [
-            "https://developer.chrome.com/docs/extensions/*",
-            "https://developer.chrome.com/docs/webstore/*"
-          ]
+            "https://*/*",
+            "http://*/*"
+          ],
+          "run_at": "document_end",
+          "css": ["css/main.css"]
         }
       ],
     "background": {

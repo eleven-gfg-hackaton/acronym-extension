@@ -1,0 +1,37 @@
+.acr-popup {
+    display: none;
+    position: fixed;
+    z-index: 10000;
+    background-color: #eeeeee;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-shadow: #cccccc 0 0 5px;
+    padding: 15px;
+}
+
+.acr-highlight {
+    cursor: pointer;
+    background: #f5a106;
+}
+
+.acr-popup.show {
+    display: block;
+}
+
+.acr-popup.hide {
+    display: none;
+}
+
+.acr-content {
+
+}
+
+.acr-close-popup {
+    float: right;
+}
+
+.acr-table tr, .acr-table th, .acr-table td {
+    text-align: left;
+    border: 1px solid #ddd;
+    padding: 5px;
+}
