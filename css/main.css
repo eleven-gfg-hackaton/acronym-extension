@@ -28,6 +28,11 @@
 
 .acr-close-popup {
     float: right;
+    cursor: pointer;
+}
+
+.acr-table {
+    max-width: 500px;
 }
 
 .acr-table tr, .acr-table th, .acr-table td {

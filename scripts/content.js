@@ -1,13 +1,14 @@
+
 const getAllText = () => {
   return document.getElementsByTagName('body')[0].innerText;
 };
 
 const findMatches = (responseData) => {
-  const words = responseData.map((item) => item.word);
+  const acronyms = responseData.map((item) => item.acronym);
 
   let xpath = "//*[text()[";
-  for (let i = 0; i < words.length; i++) {
-    xpath += `contains(., "${words[i]}") or `;
+  for (let i = 0; i < acronyms.length; i++) {
+    xpath += `contains(., "${acronyms[i]}") or `;
   }
 
   xpath = xpath.slice(0, -4) + "]]"; // Remove the trailing " or "
@@ -17,17 +18,17 @@ const findMatches = (responseData) => {
   const matches = result.snapshotLength;
 
   for (let i = 0; i < matches; i++) {
-    words.forEach((word) => {
-      wrapMatches(result.snapshotItem(i), word);
+    acronyms.forEach((acronym) => {
+      wrapMatches(result.snapshotItem(i), acronym);
     });
   }
 }
 
-//Function to wrap matched words in a span
-const wrapMatches = (element, word) => {
-  //TODO: Ignore replace if the word is the attribute of HTML tags
-  const regex = new RegExp(`\\b${word}\\b`, 'g');
-  element.innerHTML = element.innerHTML.replace(regex, `<span class="acr-highlight">${word}</span>`);
+//Function to wrap matched acronyms in a span
+const wrapMatches = (element, acronym) => {
+  //TODO: Ignore replace if the acronym is the attribute of HTML tags
+  const regex = new RegExp(`\\b${acronym}\\b`, 'g');
+  element.innerHTML = element.innerHTML.replace(regex, `<span class="acr-highlight">${acronym}</span>`);
 }
 
 //add event listener to close the popup
@@ -47,18 +48,12 @@ document.addEventListener('click', (e) => {
 
 var responseAcr = {};
 
-chrome.runtime.sendMessage({message: "contentToBackground", data: getAllText()}, function (response) {
-  console.log("Response from background:", response);
-  findMatches(response.data);
-
-  bindingArcHighlightEvents();
-
-  responseAcr = response.data;
+chrome.runtime.sendMessage({message: "requestAcronymDetection", data: getAllText()}, function (response) {
 });
 
 function bindingArcHighlightEvents() {
 
-// add event listener to show the meaning of the word when clicked
+// add event listener to show the meaning of the acronym when clicked
   var arcElements = document.getElementsByClassName('acr-highlight');
 
   for (var i = 0; i < arcElements.length; i++) {
@@ -69,12 +64,12 @@ function bindingArcHighlightEvents() {
       popup.classList.remove('show');
 
       const meaningPopupContent = document.querySelector('.acr-content');
-      const word = e.target.textContent;
+      const acronym = e.target.textContent;
 
-      const meaning = responseAcr.find((item) => item.word === word);
+      const meaning = responseAcr.find((item) => item.acronym === acronym);
 
       var content = `
-      <h3>Acronym detection: ${word}</h3>
+      <h3>Acronym detection: ${acronym}</h3>
 <table class="acr-table"><thead>
                               <tr>
                               <th>Stand for</th>
@@ -92,8 +87,7 @@ function bindingArcHighlightEvents() {
 
       meaningPopupContent.innerHTML = content;
 
-      console.log('heh', e);
-      // style popup position under the word
+      // style popup position under the acronym
       popup.style.top = `${e.clientY + 10}px`;
       popup.style.left = `${e.clientX + 10}px`;
 
@@ -110,3 +104,18 @@ document.getElementsByTagName('body')[0].insertAdjacentHTML('beforeend', `
       <div class="acr-content"></div>
     </div>
 `);
+
+
+chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
+  if (message.action === "apiEventTriggered") {
+    if ( message.data.length === 0) {
+      return;
+    }
+
+    responseAcr = message.data;
+
+    findMatches(message.data);
+
+    bindingArcHighlightEvents();
+  }
+});

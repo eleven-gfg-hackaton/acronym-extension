@@ -1,40 +1,37 @@
-const apiUrl = '';
+async function fetchData(text) {
+  const url = 'https://us-central1-gfg-hackathon2-team-11.cloudfunctions.net/nodejs-http-function';
+  const options = {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({text: text})
+  };
 
-const fetchData = async () => {
-  const response = await fetch(apiUrl);
-  const data = await response.json();
-  return data;
-};
+  try {
+    const response = await fetch(url, options);
 
-const response = [
-  {
-    word: 'to',
-    abbrFor: [
-      {
-        name: 'Acknowledgement',
-        meaning: 'Acknowledgement'
-      },
-      {
-        name: 'Hông Sao Lả',
-        meaning: 'No problemmmm'
-      }
-    ]
-  },
-  {
-    word: '404',
-    abbrFor: [
-      {
-        name: 'Not found',
-        meaning: 'hahaha'
-      }
-    ]
-  },
-];
+    if (!response.ok) {
+      throw new Error(`Error fetching data: ${response.status}`);
+    }
 
-chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
-  if (request.message === "contentToBackground") {
-    console.log("Received message from content script:", request.data);
-    // response = fetchData(request.data);
-    sendResponse({ message: "backgroundToContent", data: response });
+    return await response.json();
+
+  } catch (error) {
+    console.error('Error:', error);
+  }
+}
+
+chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
+  sendResponse(true);  // ensureTrueIsReturned
+  if (request.message === "requestAcronymDetection") {
+    if (request.data) {
+      fetchData(request.data)
+        .then((data) => {
+          chrome.tabs.sendMessage(sender.tab.id, {action: 'apiEventTriggered', data: data});
+        })
+        .catch(error => console.error('chrome.runtime.onMessage.addListener' + error));
+      return true; // Immediately return true for async handling
+    }
   }
 });
