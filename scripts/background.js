@@ -1,8 +1,11 @@
-console.log('background.js loaded');
-
-//https://developer.chrome.com/docs/extensions/get-started/tutorial/scripts-activetab
-
 const apiUrl = '';
+
+const fetchData = async () => {
+  const response = await fetch(apiUrl);
+  const data = await response.json();
+  return data;
+};
+
 const response = [
   {
     word: 'to',
@@ -31,6 +34,7 @@ const response = [
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
   if (request.message === "contentToBackground") {
     console.log("Received message from content script:", request.data);
+    // response = fetchData(request.data);
     sendResponse({ message: "backgroundToContent", data: response });
   }
 });

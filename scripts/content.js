@@ -25,9 +25,11 @@ const findMatches = (responseData) => {
 
 //Function to wrap matched words in a span
 const wrapMatches = (element, word) => {
+  //TODO: Ignore replace if the word is the attribute of HTML tags
   const regex = new RegExp(`\\b${word}\\b`, 'g');
   element.innerHTML = element.innerHTML.replace(regex, `<span class="acr-highlight">${word}</span>`);
 }
+
 //add event listener to close the popup
 document.addEventListener('click', (e) => {
 
