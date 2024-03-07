@@ -23,15 +23,19 @@ async function fetchData(text) {
 }
 
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
-  sendResponse(true);  // ensureTrueIsReturned
+  console.log('chrome.runtime.onMessage.addListener', request);
+
   if (request.message === "requestAcronymDetection") {
+    sendResponse(true);  // ensureTrueIsReturned
     if (request.data) {
       fetchData(request.data)
         .then((data) => {
+          console.log('fetchData', data);
           chrome.tabs.sendMessage(sender.tab.id, {action: 'apiEventTriggered', data: data});
         })
         .catch(error => console.error('chrome.runtime.onMessage.addListener' + error));
-      return true; // Immediately return true for async handling
     }
+    return true;
   }
 });
+

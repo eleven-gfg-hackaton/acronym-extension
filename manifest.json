@@ -10,15 +10,15 @@
         {
           "js": ["scripts/content.js"],
           "matches": [
-            "https://*/*",
-            "http://*/*"
+            "https://us-central1-gfg-hackathon2-team-11.cloudfunctions.net/nodejs-http-function",
+            "https://theiconic.atlassian.net/*"
           ],
-          "run_at": "document_end",
+          "run_at": "document_idle",
           "css": ["css/main.css"]
         }
       ],
     "background": {
         "service_worker": "scripts/background.js"
     },
-    "permissions": ["activeTab", "scripting"]
+    "permissions": ["activeTab", "scripting", "storage"]
 }

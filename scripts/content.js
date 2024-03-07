@@ -1,8 +1,36 @@
-
 const getAllText = () => {
   return document.getElementsByTagName('body')[0].innerText;
 };
+const sendTextToBackground = (text) => {
+  chrome.runtime.sendMessage({message: "requestAcronymDetection", data: text}, function (response) {
+  });
+}
 
+chrome.storage.local.get(['enabledAcr'], function (result) {
+  console.log('getsetting', result);
+  if (result.enabledAcr === false) {
+    return;
+  }
+
+  sendTextToBackground(getAllText());
+});
+
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  console.log('content.js received message:', request)
+  if (request.type === 'acrEnableSettingChange') {
+    // Modify content script behavior based on the new enabled state
+    console.log(`Extension state changed to: ${request.enabled}`);
+    if (request.enabled === false) {
+      return;
+    }
+
+    sendTextToBackground(getAllText());
+  }
+});
+
+// End get text and send to background.js
+// Start handle the response from the API
+var responseAcr = {};
 const findMatches = (responseData) => {
   const acronyms = responseData.map((item) => item.acronym);
 
@@ -26,33 +54,21 @@ const findMatches = (responseData) => {
 
 //Function to wrap matched acronyms in a span
 const wrapMatches = (element, acronym) => {
-  //TODO: Ignore replace if the acronym is the attribute of HTML tags
-  const regex = new RegExp(`\\b${acronym}\\b`, 'g');
+  // regex to match the acronym and ignore the acronym in the tags
+  const regex = new RegExp(`\\b${acronym}\\b(?![^<]*>|[^<>]*<\\s*\\/\\s*[^>]+>)`, 'gi');
+
   element.innerHTML = element.innerHTML.replace(regex, `<span class="acr-highlight">${acronym}</span>`);
 }
 
 //add event listener to close the popup
 document.addEventListener('click', (e) => {
-
-  var activeClickedElement = document.getElementsByClassName('active-arc-element');
-
-  for (let i = 0; i < activeClickedElement.length; i++) {
-    activeClickedElement[i].classList.remove('active-arc-element');
-  }
-
   if (e.target.classList.contains('acr-close-popup')) {
     const popup = document.querySelector('.acr-popup');
     popup.className = 'acr-popup';
   }
 });
 
-var responseAcr = {};
-
-chrome.runtime.sendMessage({message: "requestAcronymDetection", data: getAllText()}, function (response) {
-});
-
 function bindingArcHighlightEvents() {
-
 // add event listener to show the meaning of the acronym when clicked
   var arcElements = document.getElementsByClassName('acr-highlight');
 
@@ -90,6 +106,13 @@ function bindingArcHighlightEvents() {
       // style popup position under the acronym
       popup.style.top = `${e.clientY + 10}px`;
       popup.style.left = `${e.clientX + 10}px`;
+      // Check if the popup is out of the screen and adjust the position
+      if (popup.getBoundingClientRect().right > window.innerWidth) {
+        popup.style.left = `${window.innerWidth - popup.getBoundingClientRect().width - 10}px`;
+      }
+      if (popup.getBoundingClientRect().bottom > window.innerHeight) {
+        popup.style.top = `${window.innerHeight - popup.getBoundingClientRect().height - 10}px`;
+      }
 
       // show the popup
       popup.className = 'acr-popup show';
@@ -99,18 +122,19 @@ function bindingArcHighlightEvents() {
 
 // append the popup element to the body
 document.getElementsByTagName('body')[0].insertAdjacentHTML('beforeend', `
-    <div class="acr-popup hide">
+    <div class="acr-popup">
     <div class="acr-close-popup">X</div>
       <div class="acr-content"></div>
     </div>
 `);
 
-
-chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
+chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
   if (message.action === "apiEventTriggered") {
-    if ( message.data.length === 0) {
+    if (message.data.length === 0) {
       return;
     }
+
+    console.log('apiEventTriggered', message.data);
 
     responseAcr = message.data;
 
@@ -119,3 +143,5 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
     bindingArcHighlightEvents();
   }
 });
+// End handle the response from the API
+
