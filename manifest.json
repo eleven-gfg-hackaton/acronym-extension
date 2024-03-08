@@ -1,6 +1,6 @@
 {
     "manifest_version": 3,
-    "name": "Acronym Finder",
+    "name": "AIcronym",
     "version": "1.0",
     "description": "This extension will help you find the meaning of an acronym",
     "action": {
